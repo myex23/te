@@ -14,7 +14,7 @@ QEMU_TIMEOUT="120"
 SCREENSHOT_INTERVAL="30" # seconds
 
 echo "🟢 [1/8] Installing build dependencies..."
-sudo pacman -Sy --noconfirm archiso git python python-pip imagemagick xorg-server-xvfb qemu-base base-devel neofetch rofi picom tmux zsh fzf ripgrep btop feh xclip
+sudo pacman -Sy --noconfirm archiso git python python-pip imagemagick xorg-server-xvfb qemu-base base-devel fastfetch rofi picom tmux zsh fzf ripgrep btop feh xclip
 
 # --- Clean previous ---
 rm -rf "$ARCHISO_DIR" "$WORK_DIR" "$OUT_DIR" "$SCREENSHOT_DIR"
@@ -31,7 +31,7 @@ cat <<EOL >> packages.x86_64
 # Desktop, window management, effects, themes
 plasma-meta sddm xorg kdeplasma-addons bismuth-git krohnkite-git
 wmctrl xdotool tmux rofi picom kvantum-qt5 kvantum-theme-sweet qt5ct qt6ct
-orchis-theme sweet-gtk-theme-git papirus-icon-theme pywal variety feh btop neofetch
+orchis-theme sweet-gtk-theme-git papirus-icon-theme pywal variety feh btop fastfetch
 networkmanager nano zsh fzf ripgrep xclip flameshot
 
 # AI/automation
@@ -71,7 +71,7 @@ sleep 8
 feh --bg-scale /usr/share/backgrounds/archlinux/archlinux-simplyblack.jpg || true
 picom --config /root/.config/picom.conf &
 sleep 3
-konsole --hold -e "neofetch; echo 'Elysium OS Demo!'; sleep 12" &
+konsole --hold -e "fastfetch; echo 'Elysium OS Demo!'; sleep 12" &
 sleep 2
 rofi -show drun -theme Sweet &
 btop &
