@@ -20,7 +20,7 @@ jobs:
           options: -v ${{ github.workspace }}:/workspace
           run: |
             set -e
-            pacman -Sy --noconfirm archiso git python python-pip imagemagick xorg-server-xvfb qemu-base base-devel neofetch rofi picom tmux zsh fzf ripgrep btop feh xclip
+            pacman -Sy --noconfirm archiso git python python-pip imagemagick xorg-server-xvfb qemu-base base-devel fastfetch rofi picom tmux zsh fzf ripgrep btop feh xclip
             cd /workspace
             bash build_and_test_elysium.sh
 
