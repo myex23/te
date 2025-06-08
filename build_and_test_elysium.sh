@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-# --- CONFIG ---
+# --- CONFIGURATION ---
 ISO_NAME="elysium-os"
 ARCHISO_REPO="https://gitlab.archlinux.org/archlinux/archiso.git"
 ARCHISO_DIR="archiso"
@@ -10,13 +10,12 @@ WORK_DIR="$ISO_NAME"
 OUT_DIR="out"
 SCREENSHOT_DIR="screenshots"
 QEMU_RAM="4096"
-QEMU_TIMEOUT="120"
 SCREENSHOT_INTERVAL="30" # seconds
 
 echo "🟢 [1/8] Installing build dependencies..."
 sudo pacman -Sy --noconfirm archiso git python python-pip imagemagick xorg-server-xvfb qemu-base base-devel fastfetch rofi picom tmux zsh fzf ripgrep btop feh xclip
 
-# --- Clean previous ---
+# --- Clean previous build artifacts ---
 rm -rf "$ARCHISO_DIR" "$WORK_DIR" "$OUT_DIR" "$SCREENSHOT_DIR"
 mkdir -p "$SCREENSHOT_DIR"
 
@@ -28,21 +27,21 @@ cd "$WORK_DIR"
 echo "🟡 [3/8] Customizing packages and system..."
 cat <<EOL >> packages.x86_64
 
-# Desktop, window management, effects, themes
+# Desktop Environment, Window Management & Visual Effects
 plasma-meta sddm xorg kdeplasma-addons bismuth-git krohnkite-git
 wmctrl xdotool tmux rofi picom kvantum-qt5 kvantum-theme-sweet qt5ct qt6ct
 orchis-theme sweet-gtk-theme-git papirus-icon-theme pywal variety feh btop fastfetch
 networkmanager nano zsh fzf ripgrep xclip flameshot
 
-# AI/automation
+# AI / Automation
 python python-pip python-openai git
 
-# Media
+# Multimedia Support
 pipewire pipewire-alsa pipewire-pulse
 
 EOL
 
-# --- Systemd and autostart for demo scripts ---
+# --- Setup systemd for autologin ---
 mkdir -p airootfs/etc/systemd/system/getty@tty1.service.d/
 cat <<EOL > airootfs/etc/systemd/system/getty@tty1.service.d/autologin.conf
 [Service]
@@ -50,7 +49,7 @@ ExecStart=
 ExecStart=-/usr/bin/agetty --autologin root --noclear %I \$TERM
 EOL
 
-# --- Custom desktop autoruns for demo ---
+# --- Desktop autostart for demo ---
 mkdir -p airootfs/root/.config/autostart
 mkdir -p airootfs/root/scripts
 cat <<EOL > airootfs/root/.config/autostart/elysium-demo.desktop
@@ -63,28 +62,33 @@ Name=Elysium Demo Startup
 Comment=Runs demo UI for screenshot workflow
 EOL
 
-# --- Demo script: open apps, set wallpaper, trigger screenshots ---
+# --- Demo script: opens apps, sets wallpaper, and triggers UI for screenshots ---
 cat <<'EOL' > airootfs/root/scripts/elysium-demo.sh
 #!/usr/bin/env bash
 export DISPLAY=:0
 sleep 8
 feh --bg-scale /usr/share/backgrounds/archlinux/archlinux-simplyblack.jpg || true
+# Start picom for blur, transparency, and rounded corners
 picom --config /root/.config/picom.conf &
 sleep 3
+# Launch a terminal (konsole) running fastfetch demo & hold so screenshot catches it
 konsole --hold -e "fastfetch; echo 'Elysium OS Demo!'; sleep 12" &
 sleep 2
+# Launch rofi as a sample application launcher
 rofi -show drun -theme Sweet &
+# Run system monitoring dashboard
 btop &
 sleep 2
+# Start a tmux session to simulate tiling window management
 tmux new-session -d -s demo 'htop'
 sleep 2
-# Wait for Xvfb screenshot service to do its job
+# Allow time for the UI to stabilize before screenshots are taken
 sleep 40
 poweroff
 EOL
 chmod +x airootfs/root/scripts/elysium-demo.sh
 
-# --- Picom (blur/transparency/rounded corners) ---
+# --- Picom configuration (blur, transparency, rounded corners) ---
 mkdir -p airootfs/root/.config
 cat <<'EOL' > airootfs/root/.config/picom.conf
 backend = "glx";
@@ -102,7 +106,7 @@ opacity-rule = [
 ];
 EOL
 
-# --- KDE/Plasma global theming ---
+# --- KDE/Plasma theming ---
 mkdir -p airootfs/root/.config
 cat <<'EOL' > airootfs/root/.config/kdeglobals
 [General]
@@ -116,6 +120,7 @@ Theme=Papirus
 name=Sweet
 EOL
 
+# --- KWin configuration for window effects ---
 mkdir -p airootfs/root/.config
 cat <<'EOL' > airootfs/root/.config/kwinrc
 [Plugins]
@@ -131,6 +136,7 @@ Saturation=0.5
 CornerRadius=18
 EOL
 
+# --- Kvantum configuration for scalable UI elements ---
 mkdir -p airootfs/root/.config/Kvantum
 cat <<'EOL' > airootfs/root/.config/Kvantum/kvantum.kvconfig
 [General]
@@ -156,7 +162,7 @@ echo "🔵 [4/8] Building ISO..."
 mkarchiso -v -o "../$OUT_DIR" .
 cd ..
 
-# --- QEMU + XVFB: Automated boot and screenshots ---
+# --- QEMU + Xvfb: Boot ISO and capture screenshots ---
 ISO_PATH="$(ls $OUT_DIR/*.iso | head -1)"
 
 echo "🟠 [5/8] Starting QEMU headless for screenshotting..."
@@ -179,6 +185,7 @@ qemu-system-x86_64 \
   -usb -device usb-tablet &
 QEMU_PID=$!
 
+# Allow time for the demo session to load and run
 sleep 15
 for i in {1..4}; do
   import -display :99 -window root "$SCREENSHOT_DIR/elysium-desktop-$i.png"
@@ -188,4 +195,4 @@ done
 kill $QEMU_PID || true
 kill $XVFB_PID || true
 
-echo "🟢 [6/8] All done! ISO and screenshots in $OUT_DIR and $SCREENSHOT_DIR"
+echo "🟢 [6/8] All done! ISO and screenshots are in $OUT_DIR and $SCREENSHOT_DIR"
