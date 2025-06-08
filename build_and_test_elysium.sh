@@ -52,6 +52,7 @@ EOL
 
 # --- Custom desktop autoruns for demo ---
 mkdir -p airootfs/root/.config/autostart
+mkdir -p airootfs/root/scripts
 cat <<EOL > airootfs/root/.config/autostart/elysium-demo.desktop
 [Desktop Entry]
 Type=Application
@@ -63,7 +64,6 @@ Comment=Runs demo UI for screenshot workflow
 EOL
 
 # --- Demo script: open apps, set wallpaper, trigger screenshots ---
-mkdir -p airootfs/root/scripts
 cat <<'EOL' > airootfs/root/scripts/elysium-demo.sh
 #!/usr/bin/env bash
 export DISPLAY=:0
@@ -103,6 +103,7 @@ opacity-rule = [
 EOL
 
 # --- KDE/Plasma global theming ---
+mkdir -p airootfs/root/.config
 cat <<'EOL' > airootfs/root/.config/kdeglobals
 [General]
 ColorScheme=Sweet
@@ -115,6 +116,7 @@ Theme=Papirus
 name=Sweet
 EOL
 
+mkdir -p airootfs/root/.config
 cat <<'EOL' > airootfs/root/.config/kwinrc
 [Plugins]
 blurEnabled=true
@@ -129,6 +131,7 @@ Saturation=0.5
 CornerRadius=18
 EOL
 
+mkdir -p airootfs/root/.config/Kvantum
 cat <<'EOL' > airootfs/root/.config/Kvantum/kvantum.kvconfig
 [General]
 theme=Sweet
@@ -154,10 +157,7 @@ mkarchiso -v -o "../$OUT_DIR" .
 cd ..
 
 # --- QEMU + XVFB: Automated boot and screenshots ---
-ISO_PATH="$OUT_DIR/$ISO_NAME-$(date +%Y.%m.%d)-x86_64.iso"
-if [[ ! -f $ISO_PATH ]]; then
-  ISO_PATH=$(ls $OUT_DIR/*.iso | head -1)
-fi
+ISO_PATH="$(ls $OUT_DIR/*.iso | head -1)"
 
 echo "🟠 [5/8] Starting QEMU headless for screenshotting..."
 Xvfb :99 -screen 0 1280x720x24 &
