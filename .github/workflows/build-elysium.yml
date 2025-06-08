@@ -1,4 +1,4 @@
-name: Build & Test Elysium OS ISO
+name: Build & Showcase Elysium OS ISO
 
 on:
   push:
@@ -6,14 +6,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  build-and-showcase:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build ISO in Arch Linux Docker
+      - name: Build ISO and take screenshot in Arch Linux container
         uses: addnab/docker-run-action@v3
         with:
           image: archlinux:base-devel
@@ -30,8 +30,8 @@ jobs:
           name: elysium-os-iso
           path: out/*.iso
 
-      - name: Upload screenshots
+      - name: Upload Showcase Screenshot
         uses: actions/upload-artifact@v4
         with:
-          name: elysium-os-screenshots
-          path: screenshots/*.png
+          name: elysium-os-showcase-screenshot
+          path: screenshots/elysium-showcase.png
